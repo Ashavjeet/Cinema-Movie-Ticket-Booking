@@ -1,0 +1,96 @@
+﻿@{
+    Layout = "_Layout";
+}
+<h3>Cart Page</h3>
+<table cellpadding="2" cellspacing="2" border="1">
+    <tr>
+        <th>Option</th>
+        <th>Name</th>
+        <th>Photo</th>
+        <th>Price</th>
+        @*<th>Quantity</th>
+            <th>Sub Total</th>*@
+    </tr>
+    @{double Total = 0; }
+    @foreach (var item in ViewBag.CartPage)
+    {
+
+        <tr>
+            <td><a asp-controller="cart" asp-action="RemoveCart" asp-route-id="@item.CartSL">Remove</a></td>
+            <td>@item.MovieName</td>
+            <td>
+                <img src="@item.ImageURL" width="60" />
+            </td>
+            <td>@item.Price</td>
+            @*<td>@item.Quantity</td>
+                <td>@(item.Product.Price * item.Quantity)</td>*@
+        </tr>
+
+        Total += item.Price;
+    }
+
+    <tr>
+        <td align="right" colspan="6">Total</td>
+        <td>
+            @Total
+        </td>
+    </tr>
+</table>
+
+<div class="text-left">
+    <div class="btn-group">
+        @*<a class="btn btn-outline-primary" asp-action="CompleteOrder">
+                Complete order
+            </a>*@
+        <div id="paypal-btn"></div>
+        <span style="padding:5px"></span>
+        <a class="btn btn-outline-success" asp-controller="Movie" asp-action="Index">
+            Add more items
+        </a>
+    </div>
+</div>
+<br>
+
+@section Scripts{
+
+    <script src="https://www.paypalobjects.com/api/checkout.js"></script>
+
+    <script>
+        paypal.Button.render({
+            //Configure environment
+            env: 'sandbox',
+            client: {
+                sandbox: 'Ac6bPluu338i9083AotI-g3anXaMHrwdGuDjJELy8hSpcHHpsfE8ZgskwmQjSxrHoFd-sqgupR0lwiBd'
+            },
+
+            //Customize button
+            locale: 'en_US',
+            style: {
+                size: 'small',
+                color: 'gold',
+                shape: 'pill'
+            },
+            commit: true,
+
+            //Set up a payment
+            payment: function (data, actions) {
+                return actions.payment.create({
+                    transactions: [{
+                        amount: {
+                            total:@Total,
+                            currency: 'NZD'
+                        }
+                    }]
+                });
+            },
+
+            //Execute the payment
+            onAuthorize: function (data, actions) {
+                return actions.payment.execute().then(function () {
+                    window.location.href = url;
+                });
+            }
+
+        }, '#paypal-btn')
+    </script>
+}
